@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-import sqlalchemy.orm as orm
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
 
@@ -9,13 +9,13 @@ from models.tipo_picole import TipoPicole
 class Lote(ModelBase):
     __tablename__ = 'lotes'
     
-    id: int = sa.Column(sa.BigInteger, primary_key=True, autoincrement=True)
-    data_criacao: datetime = sa.Column(sa.DateTime, default=datetime.now, index=True)
+    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    data_criacao: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
 
-    id_tipo_picole: int = sa.Column(sa.BigInteger, sa.ForeignKey('tipos_picole.id'), nullable=False)
-    tipo_picole: TipoPicole = orm.relationship('TipoPicole', lazy='joined')
+    id_tipo_picole: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('tipos_picole.id'), nullable=False)
+    tipo_picole: Mapped[TipoPicole] = relationship('TipoPicole', lazy='joined')
 
-    quantidade: int = sa.Column(sa.Integer, nullable=False)
+    quantidade: Mapped[int] = mapped_column(sa.Integer, nullable=False)
 
     def __repr__(self) -> int:
         return f'<Lote: {self.id}>'

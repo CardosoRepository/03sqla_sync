@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-import sqlalchemy.orm as orm
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
 from typing import List, Optional
@@ -12,54 +12,67 @@ from models.ingrediente import Ingrediente
 from models.conservante import Conservante
 from models.aditivo_nutritivo import AditivoNutritivo
 
-# Picolé pode ter vários ingredientes
+# ---------- Tabelas de associação (N:N) ----------
 ingredientes_picole = sa.Table(
     'ingredientes_picole',
     ModelBase.metadata,
-    sa.Column('id_picole', sa.Integer, sa.ForeignKey('picoles.id')),
-    sa.Column('id_ingrediente', sa.Integer, sa.ForeignKey('ingredientes.id'))
+    sa.Column('id_picole', sa.BigInteger, sa.ForeignKey('picoles.id')),
+    sa.Column('id_ingrediente', sa.BigInteger, sa.ForeignKey('ingredientes.id'))
 )
 
-# Picolé pode ter vários conservantes
 conservantes_picole = sa.Table(
     'conservantes_picole',
     ModelBase.metadata,
-    sa.Column('id_picole', sa.Integer, sa.ForeignKey('picoles.id')),
-    sa.Column('id_conservante', sa.Integer, sa.ForeignKey('conservantes.id'))
+    sa.Column('id_picole', sa.BigInteger, sa.ForeignKey('picoles.id')),
+    sa.Column('id_conservante', sa.BigInteger, sa.ForeignKey('conservantes.id'))
 )
 
-# Picolé pode ter vários aditivos nutritivos
 aditivos_nutritivos_picole = sa.Table(
     'aditivos_nutritivos_picole',
     ModelBase.metadata,
-    sa.Column('id_picole', sa.Integer, sa.ForeignKey('picoles.id')),
-    sa.Column('id_aditivo_nutritivo', sa.Integer, sa.ForeignKey('aditivos_nutritivos.id'))
+    sa.Column('id_picole', sa.BigInteger, sa.ForeignKey('picoles.id')),
+    sa.Column('id_aditivo_nutritivo', sa.BigInteger, sa.ForeignKey('aditivos_nutritivos.id'))
 )
 
+# -------------------- Model ----------------------
 class Picole(ModelBase):
     __tablename__ = 'picoles'
-    
-    id: int = sa.Column(sa.BigInteger, primary_key=True, autoincrement=True)
-    data_criacao: datetime = sa.Column(sa.DateTime, default=datetime.now, index=True)
+
+    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
+    data_criacao: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
     preco: float = sa.Column(sa.DECIMAL(8, 2), nullable=False)
 
-    id_sabor: int = sa.Column(sa.Integer, sa.ForeignKey('sabores.id'))
-    sabor: Sabor = orm.relationship('Sabor', lazy='joined')
+    # FK + relacionamentos 1:N (cada picolé tem 1 sabor / tipo / embalagem)
+    id_sabor: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('sabores.id'), nullable=False)
+    sabor: Mapped[Sabor] = relationship(back_populates='picoles', lazy='joined')
 
-    id_tipo_embalagem: int = sa.Column(sa.Integer, sa.ForeignKey('tipos_embalagem.id'))
-    tipo_embalagem: TipoEmbalagem = orm.relationship('TipoEmbalagem', lazy='joined')
+    id_tipo_embalagem: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('tipos_embalagem.id'), nullable=False)
+    tipo_embalagem: Mapped[TipoEmbalagem] = relationship(back_populates='picoles', lazy='joined')
 
-    id_tipo_picole: int = sa.Column(sa.Integer, sa.ForeignKey('tipos_picole.id'))
-    tipo_picole: TipoPicole = orm.relationship('TipoPicole', lazy='joined')
+    id_tipo_picole: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('tipos_picole.id'), nullable=False)
+    tipo_picole: Mapped[TipoPicole] = relationship(back_populates='picoles', lazy='joined')
 
-    # Um picolé pode ter vários ingredientes
-    ingredientes: List[Ingrediente] = orm.relationship('Ingrediente', secondary=ingredientes_picole, backref='ingerdiente', lazy='joined')
+    # N:N
+    ingredientes: Mapped[List[Ingrediente]] = relationship(
+        'Ingrediente', 
+        secondary=ingredientes_picole, 
+        back_populates='picoles', 
+        lazy='joined'
+    )
 
-    # Um picolé pode ter vários conservantes ou nenhum
-    conservantes: Optional[List[Conservante]] = orm.relationship('Conservante', secondary=conservantes_picole, backref='conservante', lazy='joined')
-    
-    # Um picolé pode ter vários aditivos nutritivos ou nenhum
-    aditivos_nutritivos: Optional[List[AditivoNutritivo]] = orm.relationship('AditivoNutritivo', secondary=aditivos_nutritivos_picole, backref='aditivo_nutritivo', lazy='joined')
+    conservantes: Mapped[List[Conservante]] = relationship(
+        'Conservante', 
+        secondary=conservantes_picole, 
+        back_populates='picoles', 
+        lazy='joined'
+    )
+
+    aditivos_nutritivos: Mapped[List[AditivoNutritivo]] = relationship(
+        'AditivoNutritivo', 
+        secondary=aditivos_nutritivos_picole, 
+        back_populates='picoles', 
+        lazy='joined'
+    )
 
     def __repr__(self) -> str:
         return f'<Picole: {self.tipo_picole.nome} com sabor {self.sabor.nome} e preço {self.preco}>'
