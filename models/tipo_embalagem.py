@@ -4,7 +4,7 @@ from datetime import datetime
 
 from models.model_base import ModelBase
 
-class TipoEmbalage(ModelBase):
+class TipoEmbalagem(ModelBase):
     __tablename__ = 'tipos_embalagem'
     
     id: int = sa.Column(sa.BigInteger, primary_key=True, autoincrement=True)
