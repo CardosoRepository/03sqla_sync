@@ -1,7 +1,8 @@
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
+from typing import List
 
 from models.model_base import ModelBase
 
@@ -13,6 +14,13 @@ class Revendedor(ModelBase):
     cnpj: Mapped[str] = mapped_column(sa.String(45), unique=True, nullable=False)
     razao_social: Mapped[str] = mapped_column(sa.String(100), nullable=False)
     contato: Mapped[str] = mapped_column(sa.String(100), nullable=False)
+
+    notas_fiscais: Mapped[List["NotaFiscal"]] = relationship(
+        "NotaFiscal",
+        back_populates="revendedor",
+        lazy="selectin",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f'<Revendedor: {self.razao_social}>'

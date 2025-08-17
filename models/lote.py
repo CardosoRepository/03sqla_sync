@@ -2,10 +2,11 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datetime import datetime
+from typing import List
 
 from models.model_base import ModelBase
 from models.tipo_picole import TipoPicole
-
+from models.nota_fiscal import NotaFiscal
 class Lote(ModelBase):
     __tablename__ = 'lotes'
     
@@ -17,7 +18,14 @@ class Lote(ModelBase):
 
     quantidade: Mapped[int] = mapped_column(sa.Integer, nullable=False)
 
-    def __repr__(self) -> int:
+    notas_fiscais: Mapped[List["NotaFiscal"]] = relationship(
+        "NotaFiscal",
+        secondary="lotes_nota_fiscal",
+        back_populates="lotes",
+        lazy="selectin"
+    )
+
+    def __repr__(self) -> str:
         return f'<Lote: {self.id}>'
 
     def __str__(self):
