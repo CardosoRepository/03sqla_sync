@@ -5,8 +5,7 @@ from datetime import datetime
 from typing import List
 
 from models.model_base import ModelBase
-from models.tipo_picole import TipoPicole
-from models.nota_fiscal import NotaFiscal
+
 class Lote(ModelBase):
     __tablename__ = 'lotes'
     
@@ -14,7 +13,7 @@ class Lote(ModelBase):
     data_criacao: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
 
     id_tipo_picole: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('tipos_picole.id'), nullable=False)
-    tipo_picole: Mapped[TipoPicole] = relationship('TipoPicole', lazy='joined')
+    tipo_picole: Mapped["TipoPicole"] = relationship('TipoPicole', lazy='joined')
 
     quantidade: Mapped[int] = mapped_column(sa.Integer, nullable=False)
 
