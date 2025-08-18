@@ -140,6 +140,20 @@ def select_count_agregacao() -> None:
         print (f"O picolé mais barato é: {resultado[0][2]}")
         print (f"O picolé mais caro é: {resultado[0][3]}")
 
+def select_filtro_picole(id_picole: int) -> None:
+    """
+    Seleciona um picolé específico do banco de dados.
+    """
+    
+    with create_session() as session:
+        picole: Picole = session.query(Picole).filter(Picole.id == id_picole).one_or_none()
+
+    if picole:
+        print(f'ID: {picole.id}, Data: {formata_data(picole.data_criacao)}, Sabor: {picole.sabor.nome}')
+    else:
+        print(f'Sabor com ID {id_picole} não encontrado.')
+
+
 if __name__ == "__main__":
     # select_todos_aditivos_nutritivos()
     # select_todos_sabores()
