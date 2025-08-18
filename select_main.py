@@ -102,9 +102,52 @@ def select_order_by_sabor() -> None:
         print(f'ID: {sabor.id}')
         print(f'Nome: {sabor.nome}')
 
+def select_group_by_picole() -> None:
+    with create_session() as session:
+        picoles: List[Picole] = session.query(Picole).group_by(Picole.id, Picole.id_tipo_picole).all()
+
+    for picole in picoles:
+        print(f'ID: {picole.id}')
+        print(f'Tipo Picolé: {picole.tipo_picole}')
+        print(f'Sabor: {picole.sabor}')
+        print(f'Preço: {picole.preco}')
+
+def select_limit() -> None:
+    with create_session() as session:
+        sabores: List[Sabor] = session.query(Sabor).limit(25)
+
+        for sabor in sabores:
+            print(f"ID: {sabor.id}")
+            print(f"Nome: {sabor.nome}")
+
+def select_count_revendedor() -> None:
+    with create_session() as session:
+        qtd: int = session.query(Revendedor).count()
+        print(f"Quantidade de Revendedores: {qtd}")
+
+def select_count_agregacao() -> None:
+    with create_session() as session:
+        resultado: List = session.query(
+            func.sum(Picole.preco).label("soma"),
+            func.avg(Picole.preco).label("média"),
+            func.min(Picole.preco).label("mais_barato"),
+            func.max(Picole.preco).label("mais_caro"),
+        ).all()
+
+        print(f"Resultado: {resultado}")
+        print (f"A soma de todos os picolés é: {resultado[0][0]}")
+        print (f"A média de todos os picolés é: {resultado[0][1]}")
+        print (f"O picolé mais barato é: {resultado[0][2]}")
+        print (f"O picolé mais caro é: {resultado[0][3]}")
+
 if __name__ == "__main__":
     # select_todos_aditivos_nutritivos()
     # select_todos_sabores()
     # select_filtro_sabores(1)
     # select_picole()
-    select_order_by_sabor()
+    # select_order_by_sabor()
+    # select_group_by_picole()
+    # select_limit()
+    # select_count_revendedor()
+    # select_count_agregacao()
+    print ('---')
