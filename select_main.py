@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import func
 from sqlalchemy.orm import configure_mappers
@@ -11,6 +11,7 @@ from models.aditivo_nutritivo import AditivoNutritivo
 from models.sabor import Sabor
 from models.revendedor import Revendedor
 from models.picole import Picole
+from models.nota_fiscal import NotaFiscal
 
 configure_mappers()
 
@@ -152,6 +153,30 @@ def select_filtro_picole(id_picole: int) -> None:
         print(f'ID: {picole.id}, Data: {formata_data(picole.data_criacao)}, Sabor: {picole.sabor.nome}')
     else:
         print(f'Sabor com ID {id_picole} não encontrado.')
+
+def select_todas_notas_fiscais() -> None:
+    """
+    Seleciona todas notas fiscais do banco de dados.
+    """
+
+    with create_session() as session:
+        notas_fiscais: List[NotaFiscal] = session.query(NotaFiscal).order_by(NotaFiscal.id_revendedor).all()
+
+    for nota_fiscal in notas_fiscais:
+        print(f'ID: {nota_fiscal.id}, Data: {formata_data(nota_fiscal.data)}, Valor: {nota_fiscal.valor}, ID Revendedor: {nota_fiscal.id_revendedor}, Revendedor: {nota_fiscal.revendedor.razao_social}, Número de Série: {nota_fiscal.numero_serie}, Descrição: {nota_fiscal.descricao}')
+
+def select_filtro_revendedor(id_revendedor: int) -> None:
+    """
+    Seleciona um revendedor específico do banco de dados.
+    """
+
+    with create_session() as session:
+        revendedor: Optional[Revendedor] = session.query(Revendedor).filter(Revendedor.id == id_revendedor).one_or_none()
+
+    if revendedor:
+        print(f'ID: {revendedor.id}, Razão Social: {revendedor.razao_social}')
+    else:
+        print(f'Revendedor com ID {id_revendedor} não encontrado.')
 
 
 if __name__ == "__main__":
