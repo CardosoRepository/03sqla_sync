@@ -1,31 +1,19 @@
-import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional
+
+from sqlmodel import Field, SQLModel
 
 from datetime import datetime
-from typing import List
 
-from models.model_base import ModelBase
-
-class Revendedor(ModelBase):
+class Revendedor(SQLModel, table=True):
     __tablename__ = 'revendedores'
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
-    data_criacao: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
-    cnpj: Mapped[str] = mapped_column(sa.String(45), unique=True, nullable=False)
-    razao_social: Mapped[str] = mapped_column(sa.String(100), nullable=False)
-    contato: Mapped[str] = mapped_column(sa.String(100), nullable=False)
-
-    notas_fiscais: Mapped[List["NotaFiscal"]] = relationship(
-        "NotaFiscal",
-        back_populates="revendedor",
-        lazy="selectin",
-        cascade="all, delete-orphan"
-    )
+    id:           Optional[int] = Field(primary_key=True, autoincrement=True)
+    data_criacao: datetime      = Field(default=datetime.now, index=True)
+    cnpj:         str           = Field(max_length=45, unique=True)
+    razao_social: str           = Field(max_length=100)
+    contato:      str           = Field(max_length=100)
 
     def __repr__(self) -> str:
         return f'<Revendedor: {self.razao_social}>'
-
-    def __str__(self):
-        return f"Revendedor: {self.razao_social}"
     
     

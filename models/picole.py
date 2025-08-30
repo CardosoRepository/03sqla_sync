@@ -1,10 +1,11 @@
-import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional, List
+
+from sqlmodel import Field, SQLModel, Relationship
+
+from decimal import Decimal
 
 from datetime import datetime
-from typing import List
 
-from models.model_base import ModelBase
 from models.sabor import Sabor
 from models.tipo_embalagem import TipoEmbalagem
 from models.tipo_picole import TipoPicole
@@ -13,70 +14,59 @@ from models.conservante import Conservante
 from models.aditivo_nutritivo import AditivoNutritivo
 
 # ---------- Tabelas de associação (N:N) ----------
-ingredientes_picole = sa.Table(
-    'ingredientes_picole',
-    ModelBase.metadata,
-    sa.Column('id_picole', sa.BigInteger, sa.ForeignKey('picoles.id')),
-    sa.Column('id_ingrediente', sa.BigInteger, sa.ForeignKey('ingredientes.id'))
-)
+class IngredientesPicole(SQLModel, table=True):
+    id:             Optional[int] = Field(primary_key=True, autoincrement=True)
+    id_picole:      Optional[int] = Field(foreign_key='picoles.id')
+    id_ingrediente: Optional[int] = Field(foreign_key='ingredientes.id')
 
-conservantes_picole = sa.Table(
-    'conservantes_picole',
-    ModelBase.metadata,
-    sa.Column('id_picole', sa.BigInteger, sa.ForeignKey('picoles.id')),
-    sa.Column('id_conservante', sa.BigInteger, sa.ForeignKey('conservantes.id'))
-)
 
-aditivos_nutritivos_picole = sa.Table(
-    'aditivos_nutritivos_picole',
-    ModelBase.metadata,
-    sa.Column('id_picole', sa.BigInteger, sa.ForeignKey('picoles.id')),
-    sa.Column('id_aditivo_nutritivo', sa.BigInteger, sa.ForeignKey('aditivos_nutritivos.id'))
-)
+class ConservantesPicole(SQLModel, table=True):
+    id:             Optional[int] = Field(primary_key=True, autoincrement=True)
+    id_picole:      Optional[int] = Field(foreign_key='picoles.id')
+    id_conservante: Optional[int] = Field(foreign_key='conservantes.id')
+
+class AditivosNutritivosPicole(SQLModel, table=True):
+    id:                   Optional[int] = Field(primary_key=True, autoincrement=True)
+    id_picole:            Optional[int] = Field(foreign_key='picoles.id')
+    id_aditivo_nutritivo: Optional[int] = Field(foreign_key='aditivos_nutritivos.id')
 
 # -------------------- Model ----------------------
-class Picole(ModelBase):
+class Picole(SQLModel, table=True):
     __tablename__ = 'picoles'
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
-    data_criacao: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
-    preco: float = sa.Column(sa.DECIMAL(8, 2), nullable=False)
+    id:           Optional[int] = Field(primary_key=True, autoincrement=True)
+    data_criacao: datetime      = Field(default=datetime.now, index=True)
+    preco:        Decimal       = Field(default=Decimal("0.00"), max_digits=8, decimal_places=2)
 
     # FK + relacionamentos 1:N (cada picolé tem 1 sabor / tipo / embalagem)
-    id_sabor: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('sabores.id'), nullable=False)
-    sabor: Mapped[Sabor] = relationship(back_populates='picoles', lazy='joined')
+    id_sabor: int   = Field(foreign_key='sabores.id')
+    sabor:    Sabor = Relationship(lazy='joined')
 
-    id_tipo_embalagem: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('tipos_embalagem.id'), nullable=False)
-    tipo_embalagem: Mapped[TipoEmbalagem] = relationship(back_populates='picoles', lazy='joined')
+    id_tipo_embalagem: int           = Field(foreign_key='tipos_embalagem.id')
+    tipo_embalagem:    TipoEmbalagem = Relationship(lazy='joined')
 
-    id_tipo_picole: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('tipos_picole.id'), nullable=False)
-    tipo_picole: Mapped[TipoPicole] = relationship(back_populates='picoles', lazy='joined')
+    id_tipo_picole: int        = Field(foreign_key='tipos_picole.id')
+    tipo_picole:    TipoPicole = Relationship(lazy='joined')
 
     # N:N
-    ingredientes: Mapped[List[Ingrediente]] = relationship(
-        'Ingrediente', 
-        secondary=ingredientes_picole, 
-        back_populates='picoles', 
+    ingredientes: List[Ingrediente] = Relationship(
+        link_model=IngredientesPicole, 
+        back_populates='ingrediente', 
         lazy='joined'
     )
 
-    conservantes: Mapped[List[Conservante]] = relationship(
-        'Conservante', 
-        secondary=conservantes_picole, 
-        back_populates='picoles', 
+    conservantes: List[Conservante] = Relationship(
+        link_model=ConservantesPicole, 
+        back_populates='conservante', 
         lazy='joined'
     )
 
-    aditivos_nutritivos: Mapped[List[AditivoNutritivo]] = relationship(
-        'AditivoNutritivo', 
-        secondary=aditivos_nutritivos_picole, 
-        back_populates='picoles', 
+    aditivos_nutritivos: List[AditivoNutritivo] = Relationship( 
+        link_model=AditivosNutritivosPicole, 
+        back_populates='aditivo_nutritivo', 
         lazy='joined'
     )
 
     def __repr__(self) -> str:
         return f'<Picole: {self.tipo_picole.nome} com sabor {self.sabor.nome} e preço {self.preco}>'
-
-    def __str__(self):
-        return f"Picole: {self.tipo_picole.nome} com sabor {self.sabor.nome} e preço {self.preco}>"
 

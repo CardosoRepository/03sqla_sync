@@ -1,32 +1,22 @@
-import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional
+
+from sqlmodel import Field, SQLModel, Relationship
 
 from datetime import datetime
-from typing import List
 
-from models.model_base import ModelBase
+from models.tipo_picole import TipoPicole
 
-class Lote(ModelBase):
+class Lote(SQLModel, table=True):
     __tablename__ = 'lotes'
     
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
-    data_criacao: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
+    id: Optional[int] = Field(primary_key=True, autoincrement=True)
+    data_criacao: datetime = Field(default=datetime.now, index=True)
 
-    id_tipo_picole: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('tipos_picole.id'), nullable=False)
-    tipo_picole: Mapped["TipoPicole"] = relationship('TipoPicole', lazy='joined')
+    id_tipo_picole: Optional[int] = Field(default=None, foreign_key='tipos_picole.id')
+    tipo_picole: TipoPicole = Relationship(lazy='joined', back_populates='tipo_picole')
 
-    quantidade: Mapped[int] = mapped_column(sa.Integer, nullable=False)
-
-    notas_fiscais: Mapped[List["NotaFiscal"]] = relationship(
-        "NotaFiscal",
-        secondary="lotes_nota_fiscal",
-        back_populates="lotes",
-        lazy="selectin"
-    )
+    quantidade: int = Field()
 
     def __repr__(self) -> str:
         return f'<Lote: {self.id}>'
-
-    def __str__(self):
-        return f"Lote: {self.id}"
 

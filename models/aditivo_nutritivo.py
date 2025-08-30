@@ -1,30 +1,18 @@
-import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional
+
+from sqlmodel import Field, SQLModel
 
 from datetime import datetime
-from typing import List
 
-from models.model_base import ModelBase
-
-class AditivoNutritivo(ModelBase):
+class AditivoNutritivo(SQLModel, table=True):
     __tablename__ = 'aditivos_nutritivos'
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
-    data_criacao: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
-    nome: Mapped[str] = mapped_column(sa.String(45), unique=True, nullable=False)
-    formula_quimica: Mapped[str] = mapped_column(sa.String(45), unique=True, nullable=False)
-
-    picoles: Mapped[List["Picole"]] = relationship(
-        "Picole",
-        secondary="aditivos_nutritivos_picole",
-        back_populates="aditivos_nutritivos",
-        lazy="selectin"
-    )
+    id:              Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
+    data_criacao:    datetime      = Field(default=datetime.now, index=True)
+    nome:            str           = Field(max_length=45, unique=True)
+    formula_quimica: str           = Field(max_length=100, unique=True)
 
     def __repr__(self) -> str:
         return f'<AditivoNutritivo: {self.nome}>'
-    
-    def __str__(self):
-        return f"AditivoNutritivo: {self.nome}"
     
     

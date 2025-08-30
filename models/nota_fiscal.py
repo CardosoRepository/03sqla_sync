@@ -1,53 +1,40 @@
-import sqlalchemy as sa
-import sqlalchemy.orm as orm
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional, List
+
+from sqlmodel import Field, SQLModel, Relationship
+
+from decimal import Decimal
 
 from datetime import datetime
-from typing import List
 
-from models.model_base import ModelBase
+from models.revendedor import Revendedor
+from models.lote import Lote
 
 # colunas N:N com BigInteger e PK
-lotes_nota_fiscal = sa.Table(
-    'lotes_nota_fiscal',
-    ModelBase.metadata,
-    sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
-    sa.Column('id_nota_fiscal', sa.BigInteger, sa.ForeignKey('notas_fiscais.id'), primary_key=True),
-    sa.Column('id_lote', sa.BigInteger, sa.ForeignKey('lotes.id'), primary_key=True)
-)
+class LotesNotaFiscal(SQLModel, table=True):
+    id:             Optional[int] = Field(primary_key=True, autoincrement=True)
+    id_nota_fiscal: Optional[int] = Field(default=None, foreign_key='notas_fiscais.id')
+    id_lote:        Optional[int] = Field(default=None, foreign_key='lotes.id')
 
-class NotaFiscal(ModelBase):
+
+class NotaFiscal(SQLModel, table=True):
     __tablename__ = 'notas_fiscais'
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
-    data: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
+    id:   Optional[int] = Field(primary_key=True, autoincrement=True)
+    data: datetime      = Field(default=datetime.now, index=True)
 
-    valor: Mapped[float] = mapped_column(sa.DECIMAL(8, 2), nullable=False)
-    numero_serie: Mapped[str] = mapped_column(sa.String(45), nullable=False)
-    descricao: Mapped[str] = mapped_column(sa.String(200), nullable=False)
+    valor:        Decimal = Field(default=Decimal("0.00"), max_digits=8, decimal_places=2)
+    numero_serie: str     = Field(max_length=45, unique=True)
+    descricao:    str     = Field(max_length=200)
 
-    id_revendedor: Mapped[int] = mapped_column(sa.BigInteger, sa.ForeignKey('revendedores.id'), nullable=False)
-    revendedor: Mapped["Revendedor"] = relationship(
-        "Revendedor", back_populates='notas_fiscais', lazy='joined'
+    id_revendedor: Optional[int] = Field(foreign_key='revendedores.id')
+    revendedor:    Revendedor    = Relationship(
+        "Revendedor", lazy='joined'
     )
 
-    # Uma nota fiscal pode ter vários lotes e um lote está ligado a uma nota fiscal
-    lotes: Mapped[List["Lote"]] = relationship(
-        'Lote', 
-        secondary="lotes_nota_fiscal", 
-        back_populates='notas_fiscais', 
-        lazy='selectin'
-    )
-
-    revendedor: Mapped["Revendedor"] = relationship(
-        "Revendedor",
-        back_populates="notas_fiscais",
-        lazy="joined"
+    lotes: List[Lote] = Relationship(
+        "Lote", link_model=LotesNotaFiscal, back_populates='lote', lazy='selectin'
     )
 
     def __repr__(self) -> str:
         return f'<NotaFiscal: {self.id}>'
-
-    def __str__(self):
-        return f"NotaFiscal: {self.id}"
 

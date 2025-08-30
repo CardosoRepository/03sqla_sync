@@ -1,29 +1,17 @@
-import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional
+
+from sqlmodel import Field, SQLModel
 
 from datetime import datetime
-from typing import List
 
-from models.model_base import ModelBase
-
-class Ingrediente(ModelBase):
+class Ingrediente(SQLModel, table=True):
     __tablename__ = 'ingredientes'
 
-    id: Mapped[int] = mapped_column(sa.BigInteger, primary_key=True, autoincrement=True)
-    data_criacao: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now, index=True)
-    nome: Mapped[str] = mapped_column(sa.String(45), unique=True, nullable=False)
-
-    picoles: Mapped[List["Picole"]] = relationship(
-        "Picole",
-        secondary="ingredientes_picole",
-        back_populates="ingredientes",
-        lazy="selectin"
-    )
+    id:           Optional[int] = Field(primary_key=True, autoincrement=True)
+    data_criacao: datetime      = Field(default=datetime.now, index=True)
+    nome:         str           = Field(max_length=45, unique=True)
 
     def __repr__(self) -> str:
         return f'<Ingrediente: {self.nome}>'
-    
-    def __str__(self):
-        return f"Ingrediente: {self.nome}"
     
     
