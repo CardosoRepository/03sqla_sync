@@ -1,7 +1,9 @@
 from typing import List, Optional
 
 from sqlalchemy import func
-from sqlalchemy.orm import configure_mappers
+from sqlalchemy.orm import configure_mappers, joinedload
+
+from sqlmodel import select
 
 from conf.helpers import formata_data
 from conf.db_session import create_session
@@ -21,10 +23,12 @@ def select_todos_aditivos_nutritivos() -> None:
     """
 
     with create_session() as session:
-        aditivos_nutritivos: List[AditivoNutritivo] = session.query(AditivoNutritivo).all()
+        query = select(AditivoNutritivo)
+        resultado = session.exec(query)
+        aditivos_nutritivos = resultado.all()
 
-    for an in aditivos_nutritivos:
-        print(f'ID: {an.id}, Data: {formata_data(an.data_criacao)}, Nome: {an.nome}, Fórmula Química: {an.formula_quimica}')
+        for an in aditivos_nutritivos:
+            print(f'ID: {an.id}, Data: {formata_data(an.data_criacao)}, Nome: {an.nome}, Fórmula Química: {an.formula_quimica}')
 
 def select_filtro_sabores(id_sabor: int) -> None:
     """Seleciona um sabor específico do banco de dados.
@@ -35,22 +39,14 @@ def select_filtro_sabores(id_sabor: int) -> None:
     """
     
     with create_session() as session:
-        # Forma 1 -> Retorna None caso não encontre o sabor
-        # sabor: Sabor = session.query(Sabor).filter(Sabor.id == id_sabor).first()
+        query = select(Sabor).where(Sabor.id == id_sabor)
+        resultado: Sabor = session.exec(query)
+        sabor: Sabor = resultado.first()
 
-        # Forma 2 -> Retorna None caso não encontre o sabor (Recomendado)
-        sabor: Sabor = session.query(Sabor).filter(Sabor.id == id_sabor).one_or_none()
-
-        # Forma 3 -> exc.NoResultFound caso não encontre o sabor
-        # sabor: Sabor = session.query(Sabor).filter(Sabor.id == id_sabor).one()
-
-        # Forma 4 -> Usando where em vez de filter (one(), one_or_none(), first())
-        # sabor: Sabor = session.query(Sabor).where(Sabor.id == id_sabor).one()
-
-    if sabor:
-        print(f'ID: {sabor.id}, Data: {formata_data(sabor.data_criacao)}, Nome: {sabor.nome}')
-    else:
-        print(f'Sabor com ID {id_sabor} não encontrado.')
+        if sabor:
+            print(f'ID: {sabor.id}, Data: {formata_data(sabor.data_criacao)}, Nome: {sabor.nome}')
+        else:
+            print(f'Sabor com ID {id_sabor} não encontrado.')
 
 def select_todos_sabores() -> None:
     """
@@ -58,7 +54,9 @@ def select_todos_sabores() -> None:
     """
 
     with create_session() as session:
-        sabores: List[Sabor] = session.query(Sabor).all()
+        query = select(Sabor)
+        resultado = session.exec(query)
+        sabores = resultado.all()
 
     for sabor in sabores:
         print(f'ID: {sabor.id}, Data: {formata_data(sabor.data_criacao)}, Nome: {sabor.nome}')
@@ -69,27 +67,29 @@ def select_picole() -> None:
     """
 
     with create_session() as session:
-        picoles: List[Picole] = session.query(Picole).all()
+        query = select(Picole)
+        resultado = session.exec(query).unique()
+        picoles = resultado.all()
 
-    for picole in picoles:
-        print(
-            "ID:", picole.id, ",",
-            "Data:", formata_data(picole.data_criacao), ",",
-            "Preço:", picole.preco, ",",
+        for picole in picoles:
+            print(
+                "ID:", picole.id, ",",
+                "Data:", formata_data(picole.data_criacao), ",",
+                "Preço:", picole.preco, ",",
 
-            "ID Sabor:", picole.sabor.id if picole.sabor else "N/A", ",",
-            "Sabor:", picole.sabor.nome if picole.sabor else "N/A", ",",
+                "ID Sabor:", picole.sabor.id if picole.sabor else "N/A", ",",
+                "Sabor:", picole.sabor.nome if picole.sabor else "N/A", ",",
 
-            "ID Embalagem:", picole.tipo_embalagem.id if picole.tipo_embalagem else "N/A", ",",
-            "Embalagem:", picole.tipo_embalagem.nome if picole.tipo_embalagem else "N/A", ",",
+                "ID Embalagem:", picole.tipo_embalagem.id if picole.tipo_embalagem else "N/A", ",",
+                "Embalagem:", picole.tipo_embalagem.nome if picole.tipo_embalagem else "N/A", ",",
 
-            "ID Tipo Picolé:", picole.tipo_picole.id if picole.tipo_picole else "N/A", ",",
-            "Tipo Picolé:", picole.tipo_picole.nome if picole.tipo_picole else "N/A"
+                "ID Tipo Picolé:", picole.tipo_picole.id if picole.tipo_picole else "N/A", ",",
+                "Tipo Picolé:", picole.tipo_picole.nome if picole.tipo_picole else "N/A"
 
-            "Ingredientes:", picole.ingredientes if picole.ingredientes else "N/A", ",",
-            "Aditivos Nutritivos:", picole.aditivos_nutritivos if picole.aditivos_nutritivos else "N/A", ",",
-            "Conservantes:", picole.conservantes if picole.conservantes else "N/A"
-        )
+                "Ingredientes:", picole.ingredientes if picole.ingredientes else "N/A", ",",
+                "Aditivos Nutritivos:", picole.aditivos_nutritivos if picole.aditivos_nutritivos else "N/A", ",",
+                "Conservantes:", picole.conservantes if picole.conservantes else "N/A"
+            )
 
 def select_order_by_sabor() -> None:
     """
@@ -97,25 +97,31 @@ def select_order_by_sabor() -> None:
     """
 
     with create_session() as session:
-        sabores: List[Sabor] = session.query(Sabor).order_by(Sabor.data_criacao.desc()).all()
+        query = select(Sabor).order_by(Sabor.data_criacao.desc())
+        result = session.exec(query)
+        sabores: List[Sabor] = result.all()
 
-    for sabor in sabores:
-        print(f'ID: {sabor.id}')
-        print(f'Nome: {sabor.nome}')
+        for sabor in sabores:
+            print(f'ID: {sabor.id}')
+            print(f'Nome: {sabor.nome}')
 
 def select_group_by_picole() -> None:
     with create_session() as session:
-        picoles: List[Picole] = session.query(Picole).group_by(Picole.id, Picole.id_tipo_picole).all()
+        query = select(Picole).group_by(Picole.id)
+        result = session.exec(query).unique()
+        picoles: List[Picole] = result.all()
 
-    for picole in picoles:
-        print(f'ID: {picole.id}')
-        print(f'Tipo Picolé: {picole.tipo_picole}')
-        print(f'Sabor: {picole.sabor}')
-        print(f'Preço: {picole.preco}')
+        for picole in picoles:
+            print(f'ID: {picole.id}')
+            print(f'Tipo Picolé: {picole.tipo_picole}')
+            print(f'Sabor: {picole.sabor}')
+            print(f'Preço: {picole.preco}')
 
 def select_limit() -> None:
     with create_session() as session:
-        sabores: List[Sabor] = session.query(Sabor).limit(25)
+        query = select(Sabor).order_by(Sabor.id).limit(25)
+        result = session.exec(query)
+        sabores: List[Sabor] = result.all()
 
         for sabor in sabores:
             print(f"ID: {sabor.id}")
@@ -123,23 +129,26 @@ def select_limit() -> None:
 
 def select_count_revendedor() -> None:
     with create_session() as session:
-        qtd: int = session.query(Revendedor).count()
+        query = select(func.count(Revendedor.id))
+        qtd: int = session.exec(query).one()
         print(f"Quantidade de Revendedores: {qtd}")
 
 def select_count_agregacao() -> None:
     with create_session() as session:
-        resultado: List = session.query(
-            func.sum(Picole.preco).label("soma"),
-            func.avg(Picole.preco).label("média"),
-            func.min(Picole.preco).label("mais_barato"),
-            func.max(Picole.preco).label("mais_caro"),
-        ).all()
+        query = select(
+            func.sum(Picole.preco),
+            func.avg(Picole.preco),
+            func.min(Picole.preco),
+            func.max(Picole.preco),
+        )
 
-        print(f"Resultado: {resultado}")
-        print (f"A soma de todos os picolés é: {resultado[0][0]}")
-        print (f"A média de todos os picolés é: {resultado[0][1]}")
-        print (f"O picolé mais barato é: {resultado[0][2]}")
-        print (f"O picolé mais caro é: {resultado[0][3]}")
+        soma, media, mais_barato, mais_caro = session.exec(query).one()
+
+        print(f"Resultado: (soma={soma}, media={media}, min={mais_barato}, max={mais_caro})")
+        print(f"A soma de todos os picolés é: {soma}")
+        print(f"A média de todos os picolés é: {media}")
+        print(f"O picolé mais barato é: {mais_barato}")
+        print(f"O picolé mais caro é: {mais_caro}")
 
 def select_filtro_picole(id_picole: int) -> None:
     """
@@ -147,12 +156,18 @@ def select_filtro_picole(id_picole: int) -> None:
     """
     
     with create_session() as session:
-        picole: Picole = session.query(Picole).filter(Picole.id == id_picole).one_or_none()
+        query = (
+            select(Picole)
+            .where(Picole.id == id_picole)
+            .options(joinedload(Picole.sabor))
+        )
+        result = session.exec(query)
+        picole: Optional[Picole] = result.one_or_none()
 
-    if picole:
-        print(f'ID: {picole.id}, Data: {formata_data(picole.data_criacao)}, Sabor: {picole.sabor.nome}')
-    else:
-        print(f'Sabor com ID {id_picole} não encontrado.')
+        if picole:
+            print(f'ID: {picole.id}, Data: {formata_data(picole.data_criacao)}, Sabor: {picole.sabor.nome}')
+        else:
+            print(f'Sabor com ID {id_picole} não encontrado.')
 
 def select_todas_notas_fiscais() -> None:
     """
@@ -160,10 +175,16 @@ def select_todas_notas_fiscais() -> None:
     """
 
     with create_session() as session:
-        notas_fiscais: List[NotaFiscal] = session.query(NotaFiscal).order_by(NotaFiscal.id_revendedor).all()
+        query = (
+            select(NotaFiscal)
+            .options(joinedload(NotaFiscal.revendedor))
+            .order_by(NotaFiscal.id_revendedor)
+        )
+        result = session.exec(query)
+        notas_fiscais: List[NotaFiscal] = result.all()
 
-    for nota_fiscal in notas_fiscais:
-        print(f'ID: {nota_fiscal.id}, Data: {formata_data(nota_fiscal.data)}, Valor: {nota_fiscal.valor}, ID Revendedor: {nota_fiscal.id_revendedor}, Revendedor: {nota_fiscal.revendedor.razao_social}, Número de Série: {nota_fiscal.numero_serie}, Descrição: {nota_fiscal.descricao}')
+        for nota_fiscal in notas_fiscais:
+            print(f'ID: {nota_fiscal.id}, Data: {formata_data(nota_fiscal.data)}, Valor: {nota_fiscal.valor}, ID Revendedor: {nota_fiscal.id_revendedor}, Revendedor: {nota_fiscal.revendedor.razao_social}, Número de Série: {nota_fiscal.numero_serie}, Descrição: {nota_fiscal.descricao}')
 
 def select_filtro_revendedor(id_revendedor: int) -> None:
     """
@@ -171,12 +192,12 @@ def select_filtro_revendedor(id_revendedor: int) -> None:
     """
 
     with create_session() as session:
-        revendedor: Optional[Revendedor] = session.query(Revendedor).filter(Revendedor.id == id_revendedor).one_or_none()
+        revendedor: Optional[Revendedor] = session.get(Revendedor, id_revendedor)
 
-    if revendedor:
-        print(f'ID: {revendedor.id}, Razão Social: {revendedor.razao_social}')
-    else:
-        print(f'Revendedor com ID {id_revendedor} não encontrado.')
+        if revendedor:
+            print(f'ID: {revendedor.id}, Razão Social: {revendedor.razao_social}')
+        else:
+            print(f'Revendedor com ID {id_revendedor} não encontrado.')
 
 
 if __name__ == "__main__":
