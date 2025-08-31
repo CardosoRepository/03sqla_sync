@@ -162,7 +162,7 @@ def select_filtro_picole(id_picole: int) -> None:
             .options(joinedload(Picole.sabor))
         )
         result = session.exec(query)
-        picole: Optional[Picole] = result.one_or_none()
+        picole: Optional[Picole] = result.unique().one_or_none()
 
         if picole:
             print(f'ID: {picole.id}, Data: {formata_data(picole.data_criacao)}, Sabor: {picole.sabor.nome}')
