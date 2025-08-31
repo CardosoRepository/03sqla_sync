@@ -24,13 +24,13 @@ def insert_aditivo_nutritivo() -> AditivoNutritivo:
         session.commit()
         session.refresh(an)
 
+        print("Aditivo Nutritivo cadastrado com sucesso!")
+        print(f"ID: {an.id}")
+        print(f"Data: {an.data_criacao}")
+        print(f"Nome: {an.nome}")
+        print(f"Fórmula Química: {an.formula_quimica}")
+
         return an
-    
-    # print("Aditivo Nutritivo cadastrado com sucesso!")
-    # print(f"ID: {an.id}")
-    # print(f"Data: {an.data_criacao}")
-    # print(f"Nome: {an.nome}")
-    # print(f"Fórmula Química: {an.formula_quimica}")
 
 def insert_sabor() -> None:
     print("Inserindo sabor...")
@@ -42,10 +42,11 @@ def insert_sabor() -> None:
     with create_session() as session:
         session.add(novo_sabor)
         session.commit()
-    
-    print("Sabor cadastrado com sucesso!")
-    print(f"ID: {novo_sabor.id}")
-    print(f"Nome: {novo_sabor.nome}")
+        session.refresh(novo_sabor)
+
+        print("Sabor cadastrado com sucesso!")
+        print(f"ID: {novo_sabor.id}")
+        print(f"Nome: {novo_sabor.nome}")
 
 def insert_tipo_embalagem() -> None:
     print("Inserindo tipo de embalagem...")
@@ -57,10 +58,11 @@ def insert_tipo_embalagem() -> None:
     with create_session() as session:
         session.add(novo_tipo_embalagem)
         session.commit()
+        session.refresh(novo_tipo_embalagem)
 
-    print("Tipo de embalagem cadastrado com sucesso!")
-    print(f"ID: {novo_tipo_embalagem.id}")
-    print(f"Nome: {novo_tipo_embalagem.nome}")
+        print("Tipo de embalagem cadastrado com sucesso!")
+        print(f"ID: {novo_tipo_embalagem.id}")
+        print(f"Nome: {novo_tipo_embalagem.nome}")
 
 def insert_tipo_picole() -> None:
     print("Inserindo tipo de picolé...")
@@ -72,10 +74,11 @@ def insert_tipo_picole() -> None:
     with create_session() as session:
         session.add(novo_tipo_picole)
         session.commit()
+        session.refresh(novo_tipo_picole)
 
-    print("Tipo de picolé cadastrado com sucesso!")
-    print(f"ID: {novo_tipo_picole.id}")
-    print(f"Nome: {novo_tipo_picole.nome}")
+        print("Tipo de picolé cadastrado com sucesso!")
+        print(f"ID: {novo_tipo_picole.id}")
+        print(f"Nome: {novo_tipo_picole.nome}")
 
 def insert_ingrediente() -> Ingrediente:
     print("Inserindo ingrediente...")
@@ -123,8 +126,9 @@ def insert_revendedor() -> Revendedor:
     with create_session() as session:
         session.add(novo_revendedor)
         session.commit()
+        session.refresh(novo_revendedor)
 
-    return novo_revendedor
+        return novo_revendedor
 
 def insert_lote() -> Lote:
     print("Inserindo lote...")
@@ -137,8 +141,9 @@ def insert_lote() -> Lote:
     with create_session() as session:
         session.add(novo_lote)
         session.commit()
+        session.refresh(novo_lote)
 
-    return novo_lote
+        return novo_lote
 
 def insert_nota_fiscal() -> None:
     print("Inserindo nota fiscal...")
@@ -153,9 +158,6 @@ def insert_nota_fiscal() -> None:
 
     lote1 = insert_lote()
     nova_nota_fiscal.lotes.append(lote1)
-
-    lote2 = insert_lote()
-    nova_nota_fiscal.lotes.append(lote2)
 
     with create_session() as session:
         session.add(nova_nota_fiscal)
@@ -238,6 +240,6 @@ if __name__ == "__main__":
 
     # insert_nota_fiscal()
 
-    # insert_picole()
+    insert_picole()
 
     print ('...')

@@ -7,8 +7,8 @@ from datetime import datetime
 class TipoPicole(SQLModel, table=True):
     __tablename__ = 'tipos_picole'
 
-    id:           Optional[int] = Field(primary_key=True, autoincrement=True)
-    data_criacao: datetime      = Field(default=datetime.now, index=True)
+    id:           Optional[int] = Field(primary_key=True)
+    data_criacao: datetime      = Field(default=datetime.now(), index=True)
     nome:         str           = Field(max_length=45, unique=True)
 
     def __repr__(self) -> str:

@@ -56,5 +56,10 @@ def create_tables() -> None:
         create_engine()
 
     import models.__all_models
-    SQLModel.metadata.drop_all(__engine)
+
+    with __engine.begin() as conn:
+        conn.exec_driver_sql("DROP SCHEMA IF EXISTS public CASCADE;")
+        conn.exec_driver_sql("CREATE SCHEMA public;")
+        conn.exec_driver_sql("SET search_path TO public;")
+
     SQLModel.metadata.create_all(__engine)
